@@ -33,3 +33,6 @@ dump values = zhi_li : 0.600000attack_result : 102.300003 hu_jia : 0.000000 atta
 
 9> attrib:dumpstring(A,1).%% dump the formula use suffix notation 
 DUMPSTRING = attack  strength  10  * ming_jie  + zhi_li 0.5 * + = 
+
+
+
