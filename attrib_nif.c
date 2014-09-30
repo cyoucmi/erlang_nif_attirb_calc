@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include "attrib.h"
 #include "header.h"
 
@@ -193,7 +194,7 @@ static ERL_NIF_TERM
 attrib_set(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
     struct Attrib **attrib;
     double value;
-    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)&attrib)){
+    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)(uintptr_t)&attrib)){
         char buf[BUFF_LEN];
 	if(enif_get_atom(env, argv[1], buf, BUFF_LEN, ERL_NIF_LATIN1) <= 0){
 	    return enif_make_atom(env, "in attrib_set, argv[1] is not an atom or string len big than 64");	
@@ -218,7 +219,7 @@ attrib_set(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
 static ERL_NIF_TERM 
 attrib_get(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
     struct Attrib **attrib;
-    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)&attrib)){
+    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)(uintptr_t)&attrib)){
         char buf[BUFF_LEN];
 	if(enif_get_atom(env, argv[1], buf, BUFF_LEN, ERL_NIF_LATIN1) <= 0){
 	    return enif_make_atom(env, "in attrib_get, argv[1] is not an atom or string len big than 64");	
@@ -240,7 +241,7 @@ static ERL_NIF_TERM
 attrib_add(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
     struct Attrib **attrib;
     double value;
-    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)&attrib)){
+    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)(uintptr_t)&attrib)){
         char buf[BUFF_LEN];
 	if(enif_get_atom(env, argv[1], buf, BUFF_LEN, ERL_NIF_LATIN1) <= 0){
 	    return enif_make_atom(env, "in attrib_add, argv[1] is not an atom or string len big than 64");	
@@ -268,7 +269,7 @@ static ERL_NIF_TERM
 attrib_sub(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
     struct Attrib **attrib;
     double value;
-    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)&attrib)){
+    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)(uintptr_t)&attrib)){
         char buf[BUFF_LEN];
 	if(enif_get_atom(env, argv[1], buf, BUFF_LEN, ERL_NIF_LATIN1) <= 0){
 	    return enif_make_atom(env, "in attrib_sub, argv[1] is not an atom or string len big than 64");	
@@ -295,7 +296,7 @@ attrib_sub(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
 static ERL_NIF_TERM 
 attrib_dumpstring(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
     struct Attrib **attrib;
-    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)&attrib)){
+    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)(uintptr_t)&attrib)){
         int index;
         if(enif_get_int(env, argv[1], &index)){
             char *dump;
@@ -316,7 +317,7 @@ attrib_dumpstring(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
 static ERL_NIF_TERM 
 attrib_roll1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
     struct Attrib **attrib;
-    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)&attrib)){
+    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)(uintptr_t)&attrib)){
         attrib_roll(*attrib);
         return enif_make_atom(env, "ok");
     }else{
@@ -327,7 +328,7 @@ attrib_roll1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
 static ERL_NIF_TERM 
 attrib_dump1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]){
     struct Attrib **attrib;
-    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)&attrib)){
+    if(enif_get_resource(env, argv[0], AttribResourceType, (void**)(uintptr_t)&attrib)){
         attrib_dump(*attrib);
         return enif_make_atom(env, "ok");
     }else{
