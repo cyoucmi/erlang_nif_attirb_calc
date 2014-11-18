@@ -220,7 +220,7 @@ enum STATUS{
 
 struct Attrib{
 	struct Expressions *exps;
-	float *reg[2];      /*两个值 一个保存上次的值*/
+	float *reg;      /*两个值 一个保存上次的值*/
 	struct Cacul_value* stack;
 	enum STATUS status;
     int     roll;       // roll值 -1：表示公式集中没有随机数运算 false:表示不需要重新roll true:表示需要重新roll
@@ -469,28 +469,13 @@ _compile( struct Expressions *exps, const char *input, char **err){
 static bool
 _cacul(struct Attrib *attrib, char **err){
 	struct Expression *exp = attrib->exps->exp_list_beg;
-	int stack_pos, queue_pos, j, index;
+	int stack_pos, queue_pos, j;
 	struct Cacul_value *p_cacul, *value[2];
 	float num[2], result = 0;
-    bool b_need_cacul;
 	
 	for(;exp;exp=exp->next){
 		stack_pos = 0;
 		queue_pos = 0;
-        //先判断计算的参数有变化 如果无变化 不进行计算
-        //reg[0]用于保存当前值
-        //reg[1]用于保存上一次的值
-        b_need_cacul = false;
-        for(j=0; j < exp->total_index_num; ++j){
-            index = exp->cacule_index[j];
-           if(attrib->reg[0][index] != attrib->reg[1][index]){
-                b_need_cacul = true;
-                break;
-           }
-        }
-        //不需要重新计算 跳过
-        if(!b_need_cacul && (attrib->roll == false || (attrib->roll == true && !exp->b_have_rand)))
-            continue;
 
 		while(queue_pos < exp->queue_used_num){
 			p_cacul = exp->cacule_queue + queue_pos;
@@ -503,7 +488,7 @@ _cacul(struct Attrib *attrib, char **err){
 						}else if(value[j]->type == NUM){
 							num[j] = value[j]->u.num;
 						}else{
-							num[j] = attrib->reg[0][value[j]->u.reg_pos];
+							num[j] = attrib->reg[value[j]->u.reg_pos];
 						}
 					}				
 				}else{
@@ -534,7 +519,7 @@ _cacul(struct Attrib *attrib, char **err){
 					case '=':
 						if(value[1]->type != VALUE)
 							goto ERROR;
-						attrib->reg[0][value[1]->u.reg_pos] = num[0];
+						attrib->reg[value[1]->u.reg_pos] = num[0];
 						break;
 					default:
 						goto ERROR;
@@ -549,8 +534,6 @@ _cacul(struct Attrib *attrib, char **err){
 			queue_pos ++;
 		}
 	}
-    //保存这一次寄存器中的值
-    memcpy(attrib->reg[1], attrib->reg[0], sizeof(float) * attrib->exps->reg_cap);
 
     if(attrib->exps->b_have_rand && attrib->roll == true){
         attrib->roll = false;
@@ -627,18 +610,14 @@ attrib_create( struct Expressions *exps ){
 	struct Attrib *attrib = (struct Attrib*)MALLOC(sizeof(*attrib));
 	struct Expression *exp;
 	int stack_max_len = 0;
-    int i;
 	
 	memset(attrib, 0, sizeof(*attrib));
 	attrib->exps = exps;
 	attrib->status = S_WRITE;
 	
-	//MALLOC reg space
-    for(i=0; i<2; ++i){
-	    attrib->reg[i] = (float*)MALLOC(sizeof(float) * exps->reg_cap);
-	    memset(attrib->reg[i], 0, sizeof(float) * exps->reg_cap);
-    }
-	
+    attrib->reg = (float*)MALLOC(sizeof(float) * exps->reg_cap);
+    memset(attrib->reg, 0, sizeof(float) * exps->reg_cap);
+
 	//MALLOC stack space
 	for(exp = exps->exp_list_beg;exp;exp=exp->next){
 		if(exp->queue_used_num > stack_max_len){
@@ -661,8 +640,7 @@ attrib_create( struct Expressions *exps ){
 void 
 attrib_release(struct Attrib* attrib){
 	FREE(attrib->stack);
-	FREE(attrib->reg[0]);
-    FREE(attrib->reg[1]);
+	FREE(attrib->reg);
 	FREE(attrib);
 }
 
@@ -679,7 +657,7 @@ int
 attrib_write( struct Attrib *attrib, const char *value_name, float value, char **err){
 	int pos;
 	if(_attrib_get_reg_pos(attrib, value_name, &pos, err)){
-		attrib->reg[0][pos] = value;
+		attrib->reg[pos] = value;
 		attrib->status = S_READ;
 		return true;
 	}
@@ -694,7 +672,7 @@ attrib_read( struct Attrib *attrib, const char *value_name, float* value, char *
 			if(!_cacul(attrib, err))
 				return false;
 		}
-		*value = attrib->reg[0][pos];
+		*value = attrib->reg[pos];
 		attrib->status = S_WRITE;
 		return true;
 	}
